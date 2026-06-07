@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env
 load_dotenv()
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='docs', static_url_path='')
 app.secret_key = os.environ.get('SECRET_KEY', 'user-secret-key-121')
 
 # ── Database ─────────────────────────────────────────────────────

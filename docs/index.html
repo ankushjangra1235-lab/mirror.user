@@ -470,7 +470,7 @@
     // Load TinyFaceDetector models
     async function loadModels() {
       try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models');
+        await faceapi.nets.tinyFaceDetector.loadFromUri('models');
         modelsLoaded = true;
       } catch (err) {
         loadingText.textContent = "Error loading models";
